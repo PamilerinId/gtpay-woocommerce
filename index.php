@@ -42,7 +42,7 @@ function gtpay_init_gateway_class() {
 			$this->has_fields = false;
 			$this->method_title = "GTPay Payment Gateway"; // Show Title
 			$this->method_description = 'GTPay Payment Gateway allows you to receive Mastercard, Verve Card and Visa Card Payments via your Woocommerce Powered Site.';// Show Description
-			$this->icon = apply_filters('woocommerce_gtpay_icon', plugins_url( 'assets/images/logo.png' , __FILE__ ) );// Icon link
+			$this->icon = apply_filters('woocommerce_gtpay_icon', plugins_url( 'assets/images/logo1.png' , __FILE__ ) );// Icon link
 			$this->notify_url = WC()->api_request_url( 'WC_GTPay' );
 			
 			
@@ -240,7 +240,6 @@ function gtpay_init_gateway_class() {
 			    $posted = wp_unslash($_POST);
 			    $gtpay_mert_id = $this->gtpay_mert_id;
 			    $hashkey = $this->hashkey;
-			    
     			
             	$tranxid = $posted['gtpay_tranx_id'];
     			$gtpay_echo_data = $posted['gtpay_echo_data'];
@@ -252,17 +251,15 @@ function gtpay_init_gateway_class() {
     			$total_amt =$total_amount * 100;
     			$reff = base64_encode($total_amount . "| GT_TranxId" . $tranxid);
     			$resp_order->add_order_note('Reff: ' . $reff);
-
 				if ($posted['gtpay_tranx_status_code'] === 'G300') {
 					#payment cancelled
 					$respond_desc = $posted['gtpay_tranx_status_msg'];
 					$message_resp = "Your transaction failed. <br><strong>Reason</strong>: " . $respond_desc . "<br><strong>Transaction Reference<strong>:" . $tranxid . '<br>You may restart your payment below.';
 					$message_type = "error";
-					$resp_order->add_order_note('GTPay payment failed: ' . $respond_desc, true);
+					$resp_order->add_order_note('GTPay payment failed:<br> ' . $respond_desc . '<br>Transaction Reference: ' . $tranxid, true);
 					$resp_order->update_status('cancelled');
 					wc_add_notice($message_resp, $message_type);
 					wp_redirect($resp_order->get_cancel_order_url());
-					die();
 				}else{
 					//Payment params successfully posted
 					//confirm hash
@@ -284,32 +281,30 @@ function gtpay_init_gateway_class() {
 							$resp_order->payment_complete();
 							$resp_order->update_status('completed');
 							wc_reduce_stock_levels( $resp_order->get_id() );
-							$resp_order->add_order_note( 'Hey, your order is paid! Thank you!', true );
+							$resp_order->add_order_note( 'Hey, your order is paid! Thank you! <br>GTPay Transaction Reference: ' . $tranxid, true );
 							wc_add_notice( $message_resp, $message_type );
 							// Empty cart
 							$woocommerce->cart->empty_cart();
 							// Redirect to the thank you page
 							wp_redirect($this->get_return_url( $resp_order ));
-							die();
 
 						}else{
 							// something went horribly wrong
 							$respond_desc = $data['ResponseDescription'];
-							$message_resp = "Your Transaction was unsuccessful because:<br> ". $respond_desc . "<br><strong>Transaction Reference</strong>:" . $tranxid ."<br><strong>Please Try Again!</strong>";
+							$message_resp = "Your Transaction was unsuccessful.<br>Reason: ". $respond_desc . "<br><strong>Transaction Reference</strong>:" . $tranxid ."<br><strong>Please Try Again!</strong>";
 							$message_type = "error";
-							$resp_order->add_order_note('GTPay payment failed: ' . $respond_desc, true);
+							$resp_order->add_order_note('GTPay payment failed:<br> ' . $respond_desc . '<br>Transaction Reference: ' . $tranxid, true);
 							$resp_order->update_status('cancelled');
 							wc_add_notice( $message_resp, $message_type );
 							wp_redirect($resp_order->get_cancel_order_url());
-							die();
 						}
 					} else {
 						wc_add_notice(  'Connection error.', 'error' );
-						die();
 					}
 				}
 			}else {
-				exit;
+				exit();
+			die();
 			}
 		}
 	}
